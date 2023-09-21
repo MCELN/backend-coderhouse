@@ -12,14 +12,21 @@ addProd.addEventListener('submit', async (e) => {
     products.forEach((value, key) => (obj[key] = value));
 
     try {
-        await fetch('/products', {
+        const response = await fetch('/products', {
             headers: {
                 "Content-type": "application/json",
             },
             method: "POST",
             body: JSON.stringify(obj),
         });
-        socket.emit('addProd', obj);
+
+        const newProduct = await response.json();
+
+        if (newProduct.status === 'success') {
+            socket.emit('addProd', obj);
+        } else {
+            socket.emit('errAddProd', newProduct.message);
+        }
     } catch (error) {
         console.log(error);
     }
@@ -35,6 +42,14 @@ socket.on('newProduct', data => {
         title: `Se acaba de ingresar el producto ${data} `,
         showConfirmButton: false,
         timer: 2000
+    })
+})
+
+socket.on('errAdd', data => {
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: `${data}`,
     })
 })
 

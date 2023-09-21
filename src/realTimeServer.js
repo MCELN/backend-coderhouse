@@ -19,6 +19,13 @@ const realTimeServer = (httpServer) => {
                 console.log(error);
             }
         })
+        socket.on('errAddProd', async data => {
+            try {
+                socket.emit('errAdd', data);
+            } catch (error) {
+                console.log(error);
+            }
+        })
 
         socket.on('message', async (data) => {
             await ChatDao.insertOne(data);

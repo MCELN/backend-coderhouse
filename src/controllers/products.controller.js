@@ -96,7 +96,6 @@ router.get('/:pid', async (req, res) => {
 
 
 router.post('/', async (req, res) => {
-    console.log(req.body)
     try {
         const { title, description, price, thumbnail = [], code, status, category, stock } = req.body;
 
@@ -115,8 +114,8 @@ router.post('/', async (req, res) => {
             stock,
         };
 
-        const response = await ProductsDao.insertOne(newProduct);
-        res.redirect('/realtimeproducts');
+        const response = await ProductsDao.create(newProduct);
+        res.status(201).json({ status: 'success', payload: response });
     } catch (error) {
         res.status(500).json({ error: 'No se ha podido agregar el producto.' });
     }
