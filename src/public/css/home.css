@@ -110,3 +110,8 @@ form button {
     font-weight: bold;
     margin-bottom: 30px;
 }
+
+.github {
+    display: flex;
+    justify-content: center;
+}

@@ -10,4 +10,9 @@ module.exports = {
         name: process.env.DB_NAME,
         session: process.env.DB_SESSION
     },
+    github: {
+        clientID: process.env.CLIENTID,
+        clientSecret: process.env.CLIENT_SECRET,
+        callbackURL: process.env.CALLBACKURL,
+    },
 }

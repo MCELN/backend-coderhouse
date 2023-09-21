@@ -1,8 +1,10 @@
 const passport = require('passport');
 const local = require('passport-local');
+const GitHubStrategy = require('passport-github2');
 const Users = require('../DAOs/mongoDB/users.dao');
 const Cart = require('../DAOs/mongoDB/cart.dao');
 const { getHashPassword, comparePassword } = require('../utils/bcrypt');
+const { github } = require('../config/index');
 
 const UsersDao = new Users;
 const CartDao = new Cart;
@@ -68,6 +70,38 @@ const initializePassport = () => {
             }
         }
     ));
+
+    passport.use('github', new GitHubStrategy({
+        clientID: github.clientID,
+        clientSecret: github.clientSecret,
+        callbackURL: github.callbackURL,
+    }, async (accessToken, refreshToken, profile, done) => {
+        try {
+            console.log(profile);
+            const user = await UsersDao.findOne({ email: profile._json.email });
+
+            if (!user) {
+                const newUserInfo = {
+                    first_name: profile._json.name,
+                    last_name: '',
+                    email: profile._json.email,
+                    age: 0,
+                    password: '',
+                    cart: await CartDao.createCart(),
+                    status: 'user',
+                }
+                const newUser = await UsersDao.create(newUserInfo);
+
+                return done(null, newUser);
+            } else {
+                return done(null, user);
+            }
+
+        } catch (error) {
+            return done(error);
+        }
+    }))
+
 
     passport.serializeUser((user, done) => {
         done(null, user._id);
