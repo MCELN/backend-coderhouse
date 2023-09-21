@@ -6,4 +6,4 @@ const protectedRoute = (req, res, next) => {
     };
 }
 
-module.exports = protectedRoute; 
+module.exports = protectedRoute;
