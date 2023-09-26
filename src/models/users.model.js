@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
     age: Number,
     password: String,
     cart: String,
-    status: String,
+    role: String,
 });
 
 userSchema.methods.serialize = function () {

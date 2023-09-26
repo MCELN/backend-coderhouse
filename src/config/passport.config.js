@@ -39,7 +39,7 @@ const initializePassport = () => {
                     age,
                     password: getHashPassword(password),
                     cart: await CartDao.createCart(),
-                    status: 'user',
+                    role: 'user',
                 }
 
                 const infoUser = await UsersDao.create(newUser);
@@ -88,7 +88,7 @@ const initializePassport = () => {
                     age: 0,
                     password: '',
                     cart: await CartDao.createCart(),
-                    status: 'user',
+                    role: 'user',
                 }
                 const newUser = await UsersDao.create(newUserInfo);
 
