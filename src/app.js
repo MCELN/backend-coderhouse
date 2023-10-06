@@ -8,6 +8,7 @@ const MongoStore = require('connect-mongo');
 const passport = require('passport');
 const initializePassport = require('./config/passport.config');
 const { db } = require('./config/index');
+const MongoConnection = require('./db');
 
 const app = express();
 
@@ -35,7 +36,7 @@ initializePassport();
 app.use(passport.initialize());
 app.use(passport.session());
 
-connectMongo();
+MongoConnection.getInstance();
 
 router(app);
 
