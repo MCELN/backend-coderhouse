@@ -46,5 +46,6 @@ module.exports = {
     findUsers,
     findByIdUser,
     findOneUser,
+    updateOneUser,
     createUser,
 };
