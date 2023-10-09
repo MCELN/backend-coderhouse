@@ -2,7 +2,11 @@ const Products = require('../../models/products.model');
 
 class ProductsDao {
     async find() {
-        return await Products.find();
+        try {
+            return await Products.find();
+        } catch (error) {
+            throw error;
+        }
     };
 
     async findById(id) {
@@ -18,15 +22,20 @@ class ProductsDao {
         return newProduct._id;
     };
 
-    async updateOne(id, prop, value) {
-        const upQuery = {};
-        upQuery[prop] = value;
-        const productUpdate = await Products.updateOne({ _id: id }, { $set: upQuery });
-        return productUpdate;
+    async updateOne(id, upQuery) {
+        try {
+            return await Products.updateOne({ _id: id }, { $set: upQuery });
+        } catch (error) {
+            throw error;
+        }
     };
 
     async deleteOne(id) {
-        await Products.deleteOne({ _id: id });
+        try {
+            await Products.deleteOne({ _id: id });
+        } catch (error) {
+            throw error;
+        }
     };
 };
 

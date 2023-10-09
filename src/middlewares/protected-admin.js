@@ -1,6 +1,6 @@
 const protectedAdmin = (req, res, next) => {
     if (req.session.user) {
-        if (req.session.user.status === 'admin') {
+        if (req.session.user.role === 'admin') {
             next();
         } else {
             res.redirect('/products');

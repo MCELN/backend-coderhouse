@@ -1,10 +1,6 @@
 const { Router } = require('express');
-const Cart = require('../DAOs/mongoDB/cart.dao');
-const Products = require('../DAOs/mongoDB/products.dao');
 const protectedRoute = require('../middlewares/protected-route');
-
-const ProductsDao = new Products();
-const CartDao = new Cart();
+const { findOneCart } = require('../services/carts.service');
 
 const router = Router();
 
@@ -12,7 +8,7 @@ const router = Router();
 router.get('/:cid', protectedRoute, async (req, res) => {
     try {
         const { cid } = req.params;
-        const cartProducts = await CartDao.findOne({ _id: cid });
+        const cartProducts = await findOneCart({ _id: cid });
         const products = cartProducts.products;
 
 

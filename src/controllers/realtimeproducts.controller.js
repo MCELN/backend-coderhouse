@@ -1,14 +1,12 @@
 const { Router } = require('express');
-const Products = require('../DAOs/mongoDB/products.dao');
 const protectedAdmin = require('../middlewares/protected-admin');
-
-const ProductsDao = new Products();
+const { findProducts } = require('../services/products.service');
 
 const router = Router();
 
 router.get('/', protectedAdmin, async (req, res) => {
     try {
-        const products = await ProductsDao.find();
+        const products = await findProducts();
         const serializedMessages = products.map(product => product.serialize());
 
         res.render(

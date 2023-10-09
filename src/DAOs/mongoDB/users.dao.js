@@ -3,20 +3,44 @@ const Users = require('../../models/users.model');
 class UsersDao {
 
     async find() {
-        return await Users.find();
+        try {
+            return await Users.find();
+        } catch (error) {
+            throw error;
+        }
     }
 
     async findById(id) {
-        return await Users.findById(id);
+        try {
+            return await Users.findById(id);
+        } catch (error) {
+            throw error;
+        }
     }
 
     async findOne(prop) {
-        return await Users.findOne(prop);
+        try {
+            return await Users.findOne(prop);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async updateOne(id, userInfo) {
+        try {
+            return await Users.updateOne({ _id: id }, { $set: userInfo });
+        } catch (error) {
+            throw error;
+        }
     }
 
     async create(newUserInfo) {
-        const newUser = await Users.create(newUserInfo);
-        return newUser;
+        try {
+            const newUser = await Users.create(newUserInfo);
+            return newUser;
+        } catch (error) {
+            throw error;
+        }
     }
 }
 

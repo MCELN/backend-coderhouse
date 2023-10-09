@@ -1,10 +1,7 @@
 const { Router } = require('express');
-const Products = require('../DAOs/mongoDB/products.dao');
 const protectedRoute = require('../middlewares/protected-route');
-const Cart = require('../DAOs/mongoDB/cart.dao');
-
-const CartDao = new Cart;
-const ProductsDao = new Products;
+const { paginateProducts, findByIdProduct, createProduct, updateOneProduct, deleteProduct } = require('../services/products.service');
+const { findByIdCart } = require('../services/carts.service');
 
 const router = Router();
 
@@ -12,7 +9,7 @@ router.get('/', protectedRoute, async (req, res) => {
     try {
 
         const user = req.session.user;
-        const cart = await CartDao.findById(req.session.user.cart);
+        const cart = await findByIdCart(req.session.user.cart);
         const cid = cart._id;
 
         if (req.session.counter) {
@@ -51,7 +48,7 @@ router.get('/', protectedRoute, async (req, res) => {
             sort: sortO,
         };
 
-        const products = await ProductsDao.paginate(filter, queryOption);
+        const products = await paginateProducts(filter, queryOption);
         const prod = products.docs;
         const serializedMessages = prod.map(product => product.serialize());
 
@@ -82,7 +79,7 @@ router.get('/', protectedRoute, async (req, res) => {
 router.get('/:pid', async (req, res) => {
     try {
         const { pid } = req.params;
-        const product = await ProductsDao.findById(pid);
+        const product = await findByIdProduct(pid);
         if (product) {
             res.json({ message: product });
         } else {
@@ -114,7 +111,7 @@ router.post('/', async (req, res) => {
             stock,
         };
 
-        const response = await ProductsDao.create(newProduct);
+        const response = await createProduct(newProduct);
         res.status(201).json({ status: 'success', payload: response });
     } catch (error) {
         res.status(500).json({ error: 'No se ha podido agregar el producto.' });
@@ -126,14 +123,14 @@ router.post('/', async (req, res) => {
 router.put('/:pid', async (req, res) => {
     try {
         const { pid } = req.params;
-        const product = ProductsDao.findById(pid);
+        const product = findByIdProduct(pid);
         const modProp = Object.keys(req.body);
         if (modProp.includes('id')) {
             res.json({ message: `La id del producto no puede ser modificada` });
         }
         if (modProp.length > 0 && product) {
             for (const prop of modProp) {
-                await ProductsDao.updateOne(pid, prop, req.body[prop]);
+                await updateOneProduct(pid, prop, req.body[prop]);
             }
             res.json({ message: `${product.title} ha sido modificado.` });
         } else if (!product) {
@@ -149,9 +146,9 @@ router.put('/:pid', async (req, res) => {
 router.delete('/:pid', async (req, res) => {
     try {
         const { pid } = req.params;
-        const exists = ProductsDao.findById(pid);
+        const exists = findByIdProduct(pid);
         if (exists) {
-            await ProductsDao.deleteOne(pid);
+            await deleteProduct(pid);
             res.json({ message: `${exists.title} ha sido eliminado.` })
         } else {
             res.status(404).json({ message: `El producto con id: ${pid} no existe.` })

@@ -1,12 +1,11 @@
 const passport = require('passport');
 const local = require('passport-local');
 const GitHubStrategy = require('passport-github2');
-const Users = require('../DAOs/mongoDB/users.dao');
 const Cart = require('../DAOs/mongoDB/cart.dao');
 const { getHashPassword, comparePassword } = require('../utils/bcrypt');
 const { github } = require('../config/index');
+const { findOneUser, findByIdUser, createUser, } = require('../services/users.service');
 
-const UsersDao = new Users;
 const CartDao = new Cart;
 
 const LocalStrategy = local.Strategy;
@@ -23,7 +22,7 @@ const initializePassport = () => {
             } = req.body;
 
             try {
-                const user = await UsersDao.findOne({ email: username });
+                const user = await findOneUser({ email: username });
 
                 if (user) {
                     console.log('Usuario en uso');
@@ -42,7 +41,7 @@ const initializePassport = () => {
                     role: 'user',
                 }
 
-                const infoUser = await UsersDao.create(newUser);
+                const infoUser = await createUser(newUser);
 
                 return done(null, infoUser);
 
@@ -55,7 +54,7 @@ const initializePassport = () => {
     passport.use('login', new LocalStrategy({ usernameField: 'email' },
         async (username, password, done) => {
             try {
-                const user = await UsersDao.findOne({ email: username });
+                const user = await findOneUser({ email: username });
                 if (!user) {
                     console.log('El usuario no existe');
                     return done(null, false);
@@ -78,7 +77,7 @@ const initializePassport = () => {
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             console.log(profile);
-            const user = await UsersDao.findOne({ email: profile._json.email });
+            const user = await findOneUser({ email: profile._json.email });
 
             if (!user) {
                 const newUserInfo = {
@@ -90,7 +89,7 @@ const initializePassport = () => {
                     cart: await CartDao.createCart(),
                     role: 'user',
                 }
-                const newUser = await UsersDao.create(newUserInfo);
+                const newUser = await createUser(newUserInfo);
 
                 return done(null, newUser);
             } else {
@@ -108,7 +107,7 @@ const initializePassport = () => {
     });
 
     passport.deserializeUser(async (id, done) => {
-        const user = await UsersDao.findById(id);
+        const user = await findByIdUser(id);
         done(null, user);
     })
 }
