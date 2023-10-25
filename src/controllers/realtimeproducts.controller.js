@@ -1,12 +1,12 @@
 const { Router } = require('express');
 const protectedAdmin = require('../middlewares/protected-admin');
-const { findProducts } = require('../services/products.service');
+const productsService = require('../services/products.service');
 
 const router = Router();
 
 router.get('/', protectedAdmin, async (req, res) => {
     try {
-        const products = await findProducts();
+        const products = await productsService.getAll();
         const serializedMessages = products.map(product => product.serialize());
 
         res.render(

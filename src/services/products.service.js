@@ -1,63 +1,99 @@
-const ProductsDao = require('../DAOs/mongoDB/products.dao');
+const { ProductsDao } = require('../adapters/factory');
+const ProductDto = require('../DTOs/product.dto');
 
-const Prodcuts = new ProductsDao();
+const Products = new ProductsDao();
 
-const findProducts = async () => {
+const getAll = async () => {
     try {
-        return await Prodcuts.find();
+        return await Products.getAll();
     } catch (error) {
         throw error;
     }
 }
 
-const findByIdProduct = async (id) => {
+const getById = async (id) => {
     try {
-        return await Prodcuts.findById(id);
+        return await Products.getById(id);
     } catch (error) {
         throw error;
     }
 }
 
-const paginateProducts = async (filter, queryOption) => {
+const getOne = async (prop, value) => {
     try {
-        return await Prodcuts.paginate(filter, queryOption);
+        return await Products.getOne(prop, value);
     } catch (error) {
         throw error;
     }
 }
 
-const createProduct = async (productInfo) => {
+const paginate = async (filter, queryOption) => {
     try {
-        return await Prodcuts.create(productInfo);
+        return await Products.paginate(filter, queryOption);
     } catch (error) {
         throw error;
     }
 }
 
-const updateOneProduct = async (id, prop, value) => {
+const create = async (productInfo) => {
     try {
-        const upQuery = {};
-        upQuery[prop] = value;
-        const productUpdate = await Products.updateOne(id, upQuery);
-        return productUpdate;
+        const {
+            title,
+            description,
+            price,
+            code,
+            category,
+            status,
+            stock,
+        } = productInfo;
+
+        if (!title
+            || !description
+            || !price
+            || !code
+            || !category
+            || !stock
+        ) return 400;
+
+        productInfo.status = status === 'on' ? true : false;
+        const newProduct = new ProductDto(productInfo);
+        const existsCode = await Products.getOne({ code });
+        if (!existsCode) {
+            const product = await Products.create(newProduct);
+            return product;
+        } else {
+            return 400;
+        }
     } catch (error) {
         throw error;
     }
 }
 
-const deleteProduct = async (id) => {
+const updateOne = async (id, productUpdate) => {
     try {
-        await Prodcuts.deleteOne(id);
+        const productUp = await Products.updateOne(id, productUpdate);
+        return productUp;
     } catch (error) {
         throw error;
     }
 }
+
+const deleteOne = async (id) => {
+    try {
+        await Products.deleteOne(id);
+        return;
+    } catch (error) {
+        throw error;
+    }
+}
+
 
 module.exports = {
-    findProducts,
-    findByIdProduct,
-    paginateProducts,
-    createProduct,
-    updateOneProduct,
-    deleteProduct,
+    getAll,
+    getById,
+    getOne,
+    create,
+    updateOne,
+    deleteOne,
+    paginate,
 }

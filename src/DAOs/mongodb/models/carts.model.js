@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const cartCollection = 'cart';
+const cartController = 'cart';
 
 const cartSchema = new mongoose.Schema({
     products: {
@@ -12,16 +12,16 @@ const cartSchema = new mongoose.Schema({
             quantity: {
                 type: Number,
                 default: 1,
-            }
+            },
         }],
-        default: [],
+        defautl: [],
     },
 });
 
 cartSchema.pre(['find', 'findOne'], function () {
     this.populate({ path: 'products.product', select: 'title description price thumbnail code category' });
-});
+})
 
-const Cart = mongoose.model(cartCollection, cartSchema);
+const Cart = mongoose.model(cartController, cartSchema);
 
 module.exports = Cart;

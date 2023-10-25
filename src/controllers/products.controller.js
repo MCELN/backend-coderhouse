@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const protectedRoute = require('../middlewares/protected-route');
-const { paginateProducts, findByIdProduct, createProduct, updateOneProduct, deleteProduct } = require('../services/products.service');
-const { findByIdCart } = require('../services/carts.service');
+const productsService = require('../services/products.service');
+const cartService = require('../services/carts.service');
 
 const router = Router();
 
@@ -9,7 +9,7 @@ router.get('/', protectedRoute, async (req, res) => {
     try {
 
         const user = req.session.user;
-        const cart = await findByIdCart(req.session.user.cart);
+        const cart = await cartService.getById(req.session.user.cart);
         const cid = cart._id;
 
         if (req.session.counter) {
@@ -48,7 +48,7 @@ router.get('/', protectedRoute, async (req, res) => {
             sort: sortO,
         };
 
-        const products = await paginateProducts(filter, queryOption);
+        const products = await productsService.paginate(filter, queryOption);
         const prod = products.docs;
         const serializedMessages = prod.map(product => product.serialize());
 
@@ -79,7 +79,7 @@ router.get('/', protectedRoute, async (req, res) => {
 router.get('/:pid', async (req, res) => {
     try {
         const { pid } = req.params;
-        const product = await findByIdProduct(pid);
+        const product = await productsService.getById(pid);
         if (product) {
             res.json({ message: product });
         } else {
@@ -111,7 +111,7 @@ router.post('/', async (req, res) => {
             stock,
         };
 
-        const response = await createProduct(newProduct);
+        const response = await productsService.create(newProduct);
         res.status(201).json({ status: 'success', payload: response });
     } catch (error) {
         res.status(500).json({ error: 'No se ha podido agregar el producto.' });
@@ -122,20 +122,8 @@ router.post('/', async (req, res) => {
 
 router.put('/:pid', async (req, res) => {
     try {
-        const { pid } = req.params;
-        const product = findByIdProduct(pid);
-        const modProp = Object.keys(req.body);
-        if (modProp.includes('id')) {
-            res.json({ message: `La id del producto no puede ser modificada` });
-        }
-        if (modProp.length > 0 && product) {
-            for (const prop of modProp) {
-                await updateOneProduct(pid, prop, req.body[prop]);
-            }
-            res.json({ message: `${product.title} ha sido modificado.` });
-        } else if (!product) {
-            res.status(404).json({ message: `El producto con id ${pid} no ha sido encontrado.` });
-        }
+        const productUpdate = await productsService.updateOne(req.params.pid, req.body);
+        res.json({ status: 'success', payload: productUpdate });
     } catch (error) {
         res.status(500).json({ error: 'No se ha podido agregar el producto.' });
     }
@@ -146,9 +134,9 @@ router.put('/:pid', async (req, res) => {
 router.delete('/:pid', async (req, res) => {
     try {
         const { pid } = req.params;
-        const exists = findByIdProduct(pid);
+        const exists = productsService.getById(pid);
         if (exists) {
-            await deleteProduct(pid);
+            await productsService.deleteOne(pid);
             res.json({ message: `${exists.title} ha sido eliminado.` })
         } else {
             res.status(404).json({ message: `El producto con id: ${pid} no existe.` })

@@ -1,12 +1,10 @@
 const passport = require('passport');
 const local = require('passport-local');
 const GitHubStrategy = require('passport-github2');
-const Cart = require('../DAOs/mongoDB/cart.dao');
-const { getHashPassword, comparePassword } = require('../utils/bcrypt');
-const { github } = require('../config/index');
-const { findOneUser, findByIdUser, createUser, } = require('../services/users.service');
-
-const CartDao = new Cart;
+const cartServices = require('../services/carts.service');
+const userService = require('../services/users.service');
+const { getHashPassword, comparePassword } = require('../utils/bcrypt.util');
+const { github } = require('../configs/index');
 
 const LocalStrategy = local.Strategy;
 
@@ -22,7 +20,7 @@ const initializePassport = () => {
             } = req.body;
 
             try {
-                const user = await findOneUser({ email: username });
+                const user = await userService.getOne({ email: username });
 
                 if (user) {
                     console.log('Usuario en uso');
@@ -37,11 +35,11 @@ const initializePassport = () => {
                     email,
                     age,
                     password: getHashPassword(password),
-                    cart: await CartDao.createCart(),
+                    cart: await cartServices.create(),
                     role: 'user',
                 }
 
-                const infoUser = await createUser(newUser);
+                const infoUser = await userService.create(newUser);
 
                 return done(null, infoUser);
 
@@ -54,7 +52,7 @@ const initializePassport = () => {
     passport.use('login', new LocalStrategy({ usernameField: 'email' },
         async (username, password, done) => {
             try {
-                const user = await findOneUser({ email: username });
+                const user = await userService.getOne({ email: username });
                 if (!user) {
                     console.log('El usuario no existe');
                     return done(null, false);
@@ -77,7 +75,7 @@ const initializePassport = () => {
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             console.log(profile);
-            const user = await findOneUser({ email: profile._json.email });
+            const user = await userService.getOne({ email: profile._json.email });
 
             if (!user) {
                 const newUserInfo = {
@@ -86,10 +84,10 @@ const initializePassport = () => {
                     email: profile._json.email,
                     age: 0,
                     password: '',
-                    cart: await CartDao.createCart(),
+                    cart: await cartServices.create(),
                     role: 'user',
                 }
-                const newUser = await createUser(newUserInfo);
+                const newUser = await userService.create(newUserInfo);
 
                 return done(null, newUser);
             } else {
@@ -107,7 +105,7 @@ const initializePassport = () => {
     });
 
     passport.deserializeUser(async (id, done) => {
-        const user = await findByIdUser(id);
+        const user = await userService.getById(id);
         done(null, user);
     })
 }

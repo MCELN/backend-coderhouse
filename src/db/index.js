@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { db } = require('../config/index');
+const { db, environment } = require('../configs/index');
 
 class MongoConnection {
     static #instance;
@@ -15,18 +15,22 @@ class MongoConnection {
             ),
                 console.log('db is connected');
         } catch (error) {
-            console.log(`${error} No se pudo establecer la conexión con la base de datos`);
-        }
-    }
+            console.log(`${error} No se pudo establecer la conexión con la base de datos.`);
+        };
+    };
 
     static getInstance() {
+        if (environment === "devfs") {
+            console.log('No está trabajando con Mongodb');
+            return;
+        }
         if (this.#instance) {
             return this.#instance;
-        }
+        };
 
         this.#instance = new MongoConnection();
         return this.#instance;
-    }
-}
+    };
+};
 
 module.exports = MongoConnection;

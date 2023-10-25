@@ -1,9 +1,5 @@
 const { Server } = require('socket.io');
-const Products = require('./DAOs/mongoDB/products.dao');
-const Chat = require('./DAOs/mongoDB/chat.dao');
-
-const ProductsDao = new Products();
-const ChatDao = new Chat();
+const chatServices = require('./services/chat.service');
 
 
 
@@ -28,14 +24,14 @@ const realTimeServer = (httpServer) => {
         })
 
         socket.on('message', async (data) => {
-            await ChatDao.insertOne(data);
-            const messages = await ChatDao.findAllRaw();
+            await chatServices.create(data);
+            const messages = await chatServices.getAll();
 
             io.emit('messageLogs', messages)
         })
 
         socket.on('auth', async (data) => {
-            const messages = await ChatDao.findAllRaw();
+            const messages = await chatServices.getAll();
             socket.emit('messageLogs', messages);
 
             socket.broadcast.emit('newUser', data);

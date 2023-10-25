@@ -1,5 +1,5 @@
 const app = require('./app');
-const { port } = require('./config/index');
+const { port } = require('./configs/index');
 const realTimeServer = require('./realTimeServer');
 
 const httpServer = app.listen(port, () => {

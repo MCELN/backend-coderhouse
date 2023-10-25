@@ -1,139 +1,112 @@
-const CartDao = require('../DAOs/mongoDB/cart.dao');
-const { findByIdProduct, updateOneProduct } = require('./products.service');
+const { CartsDao } = require('../adapters/factory');
+const CartDto = require('../DTOs/cart.dto');
+const productsService = require('../services/products.service');
 
-const Cart = new CartDao();
+const Carts = new CartsDao();
 
-const findCarts = async () => {
+const getAll = async () => {
     try {
-        return await Cart.findAll();
+        return await Carts.getAll();
     } catch (error) {
         throw error;
     }
 }
 
-const findByIdCart = async (id) => {
+const getById = async (id) => {
     try {
-        return await Cart.findById(id);
+        return await Carts.getById(id);
     } catch (error) {
         throw error;
     }
 }
 
-const findOneCart = async (prop) => {
+const getForHandlebars = async (prop) => {
     try {
-        return await Cart.findOne(prop);
+        return await Carts.getForHandlebars(prop);
     } catch (error) {
         throw error;
     }
 }
 
-const createCart = async () => {
+const create = async () => {
     try {
-        return await Cart.createCart()
+        const newCart = new CartDto();
+        const response = await Carts.create(newCart);
+        return response;
     } catch (error) {
         throw error;
     }
 }
 
-const updateOneCart = async (ip) => {
+const updateOne = async (id, products) => {
     try {
-        await Cart.updateOne(id);
-        return 'Actualización completa';
+        const response = await Carts.updateOne(id, products);
+        return response;
     } catch (error) {
-        throw error;
+
     }
 }
 
-const insertOneCart = async (cid, pid, qty) => {
+const insertOne = async (cid, pid, qty) => {
     try {
-        const productCart = await findByIdCart(cid)
-        const product = await findByIdProduct(pid);
-        let oldQty = 0;
+        const cart = await Carts.getById(cid);
+        const product = await productsService.getById(pid);
+        if (!product || !cart) return 400;
 
-        if (!product) {
-            return 'El producto que desea agregar, no existe.';
-        } else if (!productCart) {
-            return 'El carrito no existe.';
-        } else {
-            const existsIndex = productCart.products.findIndex(p => p.product.equals(pid));
-            if (existsIndex >= 0) {
-                oldQty = productCart.products[existsIndex].quantity;
-                product.stock += oldQty;
-            }
+        const index = cart.products.findIndex(p => p.id === pid || p._id === pid);
+
+        if (index >= 0) {
             if (product.stock >= qty) {
-                if (existsIndex >= 0) {
-                    productCart.products[existsIndex].quantity = oldQty + qty;
-                } else {
-                    const newProduct = {
-                        product: pid,
-                        quantity: qty,
-                    };
-                    productCart.products.push(newProduct);
-                }
-
-                await productCart.save();
-                await updateOneProduct(pid, 'stock', product.stock - (oldQty + qty));
-
-                return 'El producto se ha agregado a su carrito.';
-
+                await Carts.updateOne(cid, pid, qty)
+                await productsService.updateOne(pid, { stock: (product.stock - qty) })
             } else {
-                return 'Lo sentimos. No disponemos de ese stock.';
+                return 'Out of stock';
+            }
+        } else {
+            if (product.stock >= qty) {
+                const newProduct = {
+                    id: pid,
+                    quantity: qty
+                };
+                await Carts.updateOne(cid, pid, qty, newProduct)
+                await productsService.updateOne(pid, { stock: (product.stock - qty) })
+            } else {
+                return 'Out of stock';
             };
         }
+
+        return product;
     } catch (error) {
         throw error;
     }
 }
 
-const deleteProductCart = async (cid, pid) => {
+const deleteOneProduct = async (id, pid) => {
     try {
-        const productCart = await findByIdCart(cid);
-        const existsIndex = productCart.products.findIndex(p => p.product.equals(pid));
-        const product = await findByIdProduct(pid);
-
-        if (existsIndex >= 0) {
-            const oldQty = productCart.products[existsIndex].quantity;
-            product.stock += oldQty;
-
-            productCart.products.splice(existsIndex, 1);
-
-            await productCart.save();
-            await updateOneProduct(pid, 'stock', product.stock);
-
-            return `El producto ${product.title} ha sido eliminado del carrito.`;
-        } else {
-            return `El producto con id ${pid}, no existe en el carrito.`;
-        }
+        const response = await productsService.getById(pid);
+        await Carts.deleteOneProduct(id, pid);
+        return response.title;
     } catch (error) {
         throw error;
     }
 }
 
-const deleteAllProductsCart = async (cid) => {
+const deleteAllProduct = async (id) => {
     try {
-        const productCart = await findByIdCart(cid);
-
-        productCart.products.forEach(async p => {
-            const prodMod = await findByIdProduct(p.product._id)
-            await updateOneProduct(p.product._id, 'stock', prodMod.stock + p.quantity)
-        })
-
-        const allProducts = productCart.products.length;
-        productCart.products.splice(0, allProducts);
-        await productCart.save();
-        return `Todos los productos del carrito ${cid}, han sido quitados.`;
+        await Carts.deleteAllProduct(id);
+        return;
     } catch (error) {
         throw error;
     }
 }
 
 module.exports = {
-    findCarts,
-    findByIdCart,
-    findOneCart,
-    createCart,
-    updateOneCart,
-    insertOneCart,
-    deleteProductCart,
-    deleteAllProductsCart
+    getAll,
+    getById,
+    getForHandlebars,
+    create,
+    updateOne,
+    insertOne,
+    deleteOneProduct,
+    deleteAllProduct,
 }

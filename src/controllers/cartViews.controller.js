@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const protectedRoute = require('../middlewares/protected-route');
-const { findOneCart } = require('../services/carts.service');
+const cartService = require('../services/carts.service');
 
 const router = Router();
 
@@ -8,7 +8,7 @@ const router = Router();
 router.get('/:cid', protectedRoute, async (req, res) => {
     try {
         const { cid } = req.params;
-        const cartProducts = await findOneCart({ _id: cid });
+        const cartProducts = await cartService.getForHandlebars(cid);
         const products = cartProducts.products;
 
 

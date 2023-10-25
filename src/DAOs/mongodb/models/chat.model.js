@@ -1,4 +1,4 @@
-const mongoose = require( 'mongoose' );
+const mongoose = require('mongoose');
 
 const messagesCollection = 'message';
 
@@ -7,6 +7,6 @@ const messagesSchema = new mongoose.Schema({
     message: String,
 });
 
-const Chat = mongoose.model( messagesCollection, messagesSchema );
+const Chat = mongoose.model(messagesCollection, messagesSchema);
 
 module.exports = Chat;

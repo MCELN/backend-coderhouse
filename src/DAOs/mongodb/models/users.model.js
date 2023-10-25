@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const userCollection = 'user';
 
-const userSchema = new mongoose.Schema({
+const userSchema = mongoose.Schema({
     first_name: String,
     last_name: String,
     email: {
@@ -13,16 +13,19 @@ const userSchema = new mongoose.Schema({
     password: String,
     cart: String,
     role: String,
+    status: Boolean,
 });
 
 userSchema.methods.serialize = function () {
     return {
-        _id: this._id,
+        _id: this.id,
         first_name: this.first_name,
         last_name: this.last_name,
         email: this.email,
         age: this.age,
+        cart: this.cart,
         role: this.role,
+        status: this.status,
     };
 };
 
